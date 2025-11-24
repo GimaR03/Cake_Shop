@@ -4,6 +4,7 @@ import Navbar from './Components/Navbar';
 import Home from './Components/Home';
 import Login from './Components/Login';
 import Admin from './Components/Admin';
+import Footer from './Components/Footer'; // Import the Footer
 
 // Placeholder components for other routes
 const OnlineOrder = () => <div className="min-h-screen pt-16 bg-white dark:bg-gray-900"><h1 className="text-4xl font-bold text-center mt-10 text-gray-900 dark:text-white">Online Order</h1></div>;
@@ -191,9 +192,9 @@ function App() {
 
   return (
     <Router>
-      <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+      <div className={`min-h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
         <Navbar darkMode={darkMode} setDarkMode={setDarkMode} user={user} updateUser={updateUser} />
-        <main>
+        <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home user={user} />} />
             <Route path="/order" element={<OnlineOrder />} />
@@ -212,6 +213,7 @@ function App() {
             />
           </Routes>
         </main>
+        <Footer /> {/* Add Footer here */}
       </div>
     </Router>
   );
