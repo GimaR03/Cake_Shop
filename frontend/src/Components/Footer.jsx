@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FaFacebook, FaInstagram, FaTwitter, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaTwitter, FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -146,21 +146,31 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* Business Hours */}
+            {/* Business Hours - 24 Hours */}
             <div className="mt-4">
-              <h4 className="font-medium mb-2 text-pink-400">Business Hours</h4>
+              <h4 className="font-medium mb-2 text-pink-400 flex items-center">
+                <FaClock className="h-4 w-4 mr-2" />
+                Business Hours
+              </h4>
               <div className="text-sm text-gray-300 space-y-1">
-                <div className="flex justify-between">
-                  <span>Mon - Fri:</span>
-                  <span>8:00 AM - 8:00 PM</span>
+                <div className="flex justify-between items-center">
+                  <span>24/7 Online Orders:</span>
+                  <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-medium">
+                    Always Open
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Saturday:</span>
-                  <span>9:00 AM - 6:00 PM</span>
+                  <span>Online Support:</span>
+                  <span>24 Hours</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Sunday:</span>
-                  <span>10:00 AM - 4:00 PM</span>
+                  <span>Order Processing:</span>
+                  <span>24/7</span>
+                </div>
+                <div className="mt-2 p-2 bg-green-900/30 rounded border border-green-700/50">
+                  <p className="text-green-300 text-xs text-center">
+                    🎂 Order anytime! We're always baking happiness!
+                  </p>
                 </div>
               </div>
             </div>
