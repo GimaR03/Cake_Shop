@@ -18,12 +18,19 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Atlas Connection with your credentials
-const MONGODB_URI = 'mongodb+srv://shabeecakehub:hzf57AoqEJ80nu9m@cluster0.n4q0qqw.mongodb.net/shabee-cake-hub?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://shabeecakehub:hzf57AoqEJ80nu9m@ac-6lw8x3v-shard-00-00.n4q0qqw.mongodb.net:27017,ac-6lw8x3v-shard-00-01.n4q0qqw.mongodb.net:27017,ac-6lw8x3v-shard-00-02.n4q0qqw.mongodb.net/shabee-cake-hub?ssl=true&replicaSet=atlas-10g0u2-shard-0&authSource=admin&retryWrites=true&w=majority';
 
-mongoose.connect(MONGODB_URI, {
+// MongoDB connection options
+const mongoOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-})
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+  family: 4 // Use IPv4, skip trying IPv6
+};
+
+console.log('🔌 Attempting to connect to MongoDB...');
+mongoose.connect(MONGODB_URI, mongoOptions)
 .then(() => {
   console.log('✅ Connected to MongoDB Atlas successfully');
   console.log('📊 Database: shabee-cake-hub');
