@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaShoppingCart, FaSun, FaMoon, FaBars, FaTimes, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
-const Navbar = () => {
+const Navbar = ({ user: userProp, updateUser }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -17,12 +17,16 @@ const Navbar = () => {
       setDarkMode(false);
     }
 
-    // Check if user is logged in
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
+    // Use prop if available, otherwise check localStorage
+    if (userProp) {
+      setUser(userProp);
+    } else {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
     }
-  }, []);
+  }, [userProp]);
 
   const toggleDarkMode = () => {
     if (darkMode) {
