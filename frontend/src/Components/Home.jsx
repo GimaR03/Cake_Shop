@@ -81,13 +81,27 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-              <span className="block">Welcome to</span>
-              <span className="block text-pink-600 dark:text-pink-400">
-                {username ? `${username}` : 'Shabee Cake Hub'}
-              </span>
+              {username ? (
+                <>
+                  <span className="block">Welcome,</span>
+                  <span className="block text-pink-600 dark:text-pink-400">
+                    {username}!
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="block">Welcome to</span>
+                  <span className="block text-pink-600 dark:text-pink-400">
+                    Shabee Cake Hub
+                  </span>
+                </>
+              )}
             </h1>
             <p className="mt-3 max-w-md mx-auto text-base text-gray-500 dark:text-gray-300 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              Delicious, handcrafted cakes made with love and the finest ingredients.
+              {username 
+                ? 'Thank you for visiting! Explore our delicious range of handcrafted cakes made with love and the finest ingredients.'
+                : 'Delicious, handcrafted cakes made with love and the finest ingredients.'
+              }
             </p>
             <div className="mt-8 flex justify-center gap-4">
               <Link
