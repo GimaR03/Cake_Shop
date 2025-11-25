@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
-const Login = () => {
+const Login = ({ updateUser }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -40,6 +40,11 @@ const Login = () => {
         // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Update user state in App
+        if (updateUser) {
+          updateUser(data.user);
+        }
         
         // Redirect based on role
         if (data.user.role === 'admin') {
