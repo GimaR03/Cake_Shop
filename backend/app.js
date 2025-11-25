@@ -18,27 +18,72 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Atlas Connection with your credentials
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://shabeecakehub:hzf57AoqEJ80nu9m@ac-6lw8x3v-shard-00-00.n4q0qqw.mongodb.net:27017,ac-6lw8x3v-shard-00-01.n4q0qqw.mongodb.net:27017,ac-6lw8x3v-shard-00-02.n4q0qqw.mongodb.net/shabee-cake-hub?ssl=true&replicaSet=atlas-10g0u2-shard-0&authSource=admin&retryWrites=true&w=majority';
+// Using mongodb+srv:// format for better compatibility with Atlas
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://shabeecakehub:hzf57AoqEJ80nu9m@cluster0.n4q0qqw.mongodb.net/shabee-cake-hub?retryWrites=true&w=majority';
 
 // MongoDB connection options
 const mongoOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  serverSelectionTimeoutMS: 15000, // Timeout after 15s
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  family: 4 // Use IPv4, skip trying IPv6
+  connectTimeoutMS: 15000, // Give up initial connection after 15 seconds
+  maxPoolSize: 10, // Maintain up to 10 socket connections
+  minPoolSize: 1, // Maintain at least 1 socket connection
+  retryWrites: true,
+  w: 'majority'
 };
 
-console.log('🔌 Attempting to connect to MongoDB...');
-mongoose.connect(MONGODB_URI, mongoOptions)
-.then(() => {
-  console.log('✅ Connected to MongoDB Atlas successfully');
-  console.log('📊 Database: shabee-cake-hub');
-})
-.catch((error) => {
-  console.error('❌ MongoDB connection error:', error);
-  process.exit(1);
-});
+// Function to connect to MongoDB with retry logic
+const connectMongoDB = async (retries = 3, delay = 5000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`🔌 Attempting to connect to MongoDB... (Attempt ${i + 1}/${retries})`);
+      
+      // Close any existing connection first
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.connection.close();
+      }
+      
+      await mongoose.connect(MONGODB_URI, mongoOptions);
+      console.log('✅ Connected to MongoDB Atlas successfully');
+      console.log('📊 Database: shabee-cake-hub');
+      console.log(`🌐 Host: ${mongoose.connection.host}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ MongoDB connection error (Attempt ${i + 1}/${retries}):`, error.message);
+      
+      // Provide specific guidance based on error type
+      if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
+        console.log('💡 DNS Resolution Error: Check your internet connection and MongoDB cluster name');
+      } else if (error.message.includes('authentication failed') || error.message.includes('bad auth')) {
+        console.log('💡 Authentication Error: Check your MongoDB username and password');
+      } else if (error.message.includes('whitelist') || error.message.includes('IP')) {
+        console.log('\n🔐 IP WHITELISTING REQUIRED:');
+        console.log('   1. Go to: https://cloud.mongodb.com/');
+        console.log('   2. Select your cluster');
+        console.log('   3. Click "Network Access" (or "IP Access List")');
+        console.log('   4. Click "Add IP Address"');
+        console.log('   5. Click "Add Current IP Address" (or add 0.0.0.0/0 for all IPs - development only)');
+        console.log('   6. Wait 1-2 minutes for changes to take effect\n');
+      } else if (error.message.includes('timeout') || error.message.includes('ECONNREFUSED')) {
+        console.log('💡 Connection Timeout: Check your network connection and MongoDB Atlas status');
+      }
+      
+      if (i < retries - 1) {
+        console.log(`⏳ Retrying in ${delay / 1000} seconds...\n`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.log('\n⚠️  All connection attempts failed');
+        console.log('⚠️  Server will continue running without database connection');
+        console.log('⚠️  Admin login will work (hardcoded), but database features may be limited');
+        console.log('💡 You can fix the MongoDB connection later and restart the server\n');
+      }
+    }
+  }
+  return false;
+};
+
+// Connect to MongoDB (non-blocking)
+connectMongoDB();
 
 // MongoDB connection event handlers
 mongoose.connection.on('connected', () => {
@@ -46,11 +91,31 @@ mongoose.connection.on('connected', () => {
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error('❌ Mongoose connection error:', err);
+  console.error('❌ Mongoose connection error:', err.message);
 });
 
+
+// Handle reconnection
+mongoose.connection.on('reconnected', () => {
+  console.log('🔄 Mongoose reconnected to MongoDB Atlas');
+  // Re-initialize categories if needed
+  if (mongoose.connection.readyState === 1) {
+    setTimeout(() => {
+      initializeDefaultCategories();
+    }, 1000);
+  }
+});
+
+// Auto-reconnect on disconnect
 mongoose.connection.on('disconnected', () => {
   console.log('🔌 Mongoose disconnected from MongoDB Atlas');
+  // Attempt to reconnect after 5 seconds
+  setTimeout(() => {
+    if (mongoose.connection.readyState === 0) {
+      console.log('🔄 Attempting to reconnect to MongoDB...');
+      connectMongoDB(1, 0); // Single retry, no delay
+    }
+  }, 5000);
 });
 
 // User Schema
@@ -201,26 +266,28 @@ app.post('/api/login', async (req, res) => {
       });
     }
 
-    // Check for regular users in database
-    const user = await User.findOne({ username });
-    if (user && await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign(
-        { 
-          username: user.username, 
-          role: user.role,
-          userId: user._id 
-        },
-        JWT_SECRET,
-        { expiresIn: '24h' }
-      );
-      return res.json({
-        success: true,
-        token,
-        user: { 
-          username: user.username, 
-          role: user.role 
-        }
-      });
+    // Check for regular users in database (only if MongoDB is connected)
+    if (mongoose.connection.readyState === 1) {
+      const user = await User.findOne({ username });
+      if (user && await bcrypt.compare(password, user.password)) {
+        const token = jwt.sign(
+          { 
+            username: user.username, 
+            role: user.role,
+            userId: user._id 
+          },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+        return res.json({
+          success: true,
+          token,
+          user: { 
+            username: user.username, 
+            role: user.role 
+          }
+        });
+      }
     }
 
     res.status(401).json({ 
@@ -239,6 +306,14 @@ app.post('/api/login', async (req, res) => {
 // Register endpoint (for regular users)
 app.post('/api/register', async (req, res) => {
   try {
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'Database connection unavailable. Please try again later.' 
+      });
+    }
+
     const { username, password } = req.body;
 
     // Validate input
@@ -295,9 +370,27 @@ app.post('/api/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle duplicate username error
+    if (error.code === 11000 || error.message.includes('duplicate')) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Username already exists' 
+      });
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        success: false, 
+        message: messages.join(', ') 
+      });
+    }
+    
     res.status(500).json({ 
       success: false, 
-      message: 'Server error during registration' 
+      message: error.message || 'Server error during registration' 
     });
   }
 });
@@ -321,6 +414,12 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
 // Get all categories
 app.get('/api/categories', async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'Database connection unavailable' 
+      });
+    }
     const categories = await Category.find({ isActive: true }).sort({ createdAt: -1 });
     res.json({ 
       success: true, 
@@ -581,11 +680,19 @@ async function initializeDefaultCategories() {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 API URL: http://localhost:${PORT}`);
-  console.log(`🔗 MongoDB Atlas: Connected`);
+  console.log(`🔗 MongoDB Atlas: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Connecting...'}`);
+  console.log(`\n💡 Admin Login Credentials:`);
+  console.log(`   Username: ShabeeCakeHub`);
+  console.log(`   Password: Shabee20020720`);
+  console.log(`\n✅ Server is ready to accept requests!`);
   
-  // Initialize default data after server starts
+  // Initialize default data after server starts (only if MongoDB is connected)
   setTimeout(() => {
-    initializeDefaultCategories();
+    if (mongoose.connection.readyState === 1) {
+      initializeDefaultCategories();
+    } else {
+      console.log('⚠️  Skipping category initialization - MongoDB not connected');
+    }
   }, 2000);
 });
 
