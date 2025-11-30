@@ -3,7 +3,7 @@ import { FaFacebook, FaInstagram, FaTwitter, FaPhone, FaEnvelope, FaMapMarkerAlt
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
+//bottom footer with 4 columns: company info, quick links, cake categories, contact info including 24/7 business hours
   return (
     <footer className="bg-gray-800 dark:bg-gray-900 text-white">
       {/* Main Footer Content */}
