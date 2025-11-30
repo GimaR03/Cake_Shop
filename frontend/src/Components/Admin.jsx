@@ -137,7 +137,7 @@ const Admin = () => {
     );
     setFormData({ ...formData, sizes: newSizes });
   };
-
+//admin dashboard with list of categories, add/edit/delete category form with name, description, image URL, base price, and sizes with prices
   return (
     <div className="min-h-screen pt-20 bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
