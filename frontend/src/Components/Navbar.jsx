@@ -27,7 +27,7 @@ const Navbar = ({ user: userProp, updateUser }) => {
       }
     }
   }, [userProp]);
-
+//draw dark mode toggle button and user login/logout buttons in navbar
   const toggleDarkMode = () => {
     if (darkMode) {
       document.documentElement.classList.remove('dark');
