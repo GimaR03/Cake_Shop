@@ -23,7 +23,7 @@ const Home = () => {
     // Fetch categories from backend
     fetchCategories();
   }, []);
-
+//function to fetch cake categories from backend API
   const fetchCategories = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/categories');
