@@ -62,7 +62,7 @@ const Login = ({ updateUser }) => {
       setLoading(false);
     }
   };
-
+//create login form with username and password fields, show/hide password feature, and submit button
   return (
     <div className="min-h-screen pt-20 bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
