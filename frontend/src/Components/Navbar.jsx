@@ -38,7 +38,7 @@ const Navbar = ({ user: userProp, updateUser }) => {
     }
     setDarkMode(!darkMode);
   };
-
+//logout function to clear user data and redirect to home
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
