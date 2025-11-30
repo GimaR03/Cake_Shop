@@ -47,7 +47,7 @@ const Navbar = ({ user: userProp, updateUser }) => {
     navigate('/');
     window.location.reload();
   };
-
+//define navigation links including conditional admin link
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Online Order', path: '/order' },
