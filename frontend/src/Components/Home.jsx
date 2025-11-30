@@ -73,7 +73,7 @@ const Home = () => {
       ]);
     }
   };
-
+//render home page with hero section, categories grid, and call-to-action
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
       {/* Hero Section */}
