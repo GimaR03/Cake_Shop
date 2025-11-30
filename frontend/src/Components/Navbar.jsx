@@ -58,7 +58,7 @@ const Navbar = ({ user: userProp, updateUser }) => {
   if (user?.role === 'admin') {
     navLinks.push({ name: 'Admin', path: '/admin' });
   }
-
+//render navbar with responsive design for desktop and mobile
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-lg fixed w-full z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
