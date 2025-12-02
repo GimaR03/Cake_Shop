@@ -1,53 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FaShoppingCart, FaSun, FaMoon, FaBars, FaTimes, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
-const Navbar = ({ user: userProp, updateUser }) => {
-  const [darkMode, setDarkMode] = useState(false);
+const Navbar = ({ darkMode, setDarkMode, user: userProp, updateUser }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-      setDarkMode(true);
-    } else {
-      document.documentElement.classList.remove('dark');
-      setDarkMode(false);
-    }
-
-    // Use prop if available, otherwise check localStorage
-    if (userProp) {
-      setUser(userProp);
-    } else {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
-      }
-    }
-  }, [userProp]);
-//draw dark mode toggle button and user login/logout buttons in navbar
-  const toggleDarkMode = () => {
-    if (darkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.theme = 'light';
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.theme = 'dark';
-    }
-    setDarkMode(!darkMode);
-  };
-//logout function to clear user data and redirect to home
+  //logout function to clear user data and redirect to home
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    setUser(null);
     setIsOpen(false);
     navigate('/');
     window.location.reload();
   };
-//define navigation links including conditional admin link
+  //define navigation links including conditional admin link
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Online Order', path: '/order' },
@@ -55,10 +22,12 @@ const Navbar = ({ user: userProp, updateUser }) => {
     { name: 'Contact Us', path: '/contact' },
   ];
 
+  const user = userProp;
+
   if (user?.role === 'admin') {
     navLinks.push({ name: 'Admin', path: '/admin' });
   }
-//render navbar with responsive design for desktop and mobile
+  //render navbar with responsive design for desktop and mobile
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-lg fixed w-full z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,7 +56,7 @@ const Navbar = ({ user: userProp, updateUser }) => {
             ))}
             
             <button
-              onClick={toggleDarkMode}
+              onClick={() => setDarkMode(!darkMode)}
               className="ml-4 p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
               aria-label="Toggle dark mode"
             >
@@ -164,7 +133,7 @@ const Navbar = ({ user: userProp, updateUser }) => {
             <div className="flex items-center px-3 py-2 space-x-2">
               <button
                 onClick={() => {
-                  toggleDarkMode();
+                  setDarkMode(!darkMode);
                   setIsOpen(false);
                 }}
                 className="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-full"
