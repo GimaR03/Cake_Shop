@@ -3,28 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
+    <!-- Essential for mobile responsiveness: Sets viewport to device width and prevents initial zoom -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- Optional: Prevents automatic phone number detection/formatting on iOS -->
+    <meta name="format-detection" content="telephone=no" />
+    <!-- Theme color for browser address bar on mobile (matches your pink theme) -->
+    <meta name="theme-color" content="#EC4899" />
+    <!-- Additional meta for better mobile SEO and sharing -->
+    <meta name="description" content="Shabee Cake Hub - Delicious, handcrafted cakes made with love and the finest ingredients." />
+    <meta property="og:title" content="Shabee Cake Hub" />
+    <meta property="og:description" content="Explore our delicious range of handcrafted cakes for every occasion." />
+    <meta property="og:image" content="%PUBLIC_URL%/logo192.png" />
+    <meta property="og:url" content="%PUBLIC_URL%" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
+    <!-- Manifest for PWA (installable on mobile homescreen) -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
+    <!-- Service Worker for offline caching (optional, add if using PWA) -->
+    <!-- <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('%PUBLIC_URL%/sw.js');
+        });
+      }
+    </script> -->
+    <title>Shabee Cake Hub</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -33,11 +36,16 @@
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+      Key Changes for Mobile Responsiveness:
+      1. Enhanced viewport meta: Added maximum-scale=1.0 and user-scalable=no to prevent unwanted zooming (common for e-commerce sites).
+      2. format-detection: Prevents auto-linking of phone numbers in your contact section.
+      3. theme-color: Sets mobile browser bar to pink for branding.
+      4. OG/Twitter meta: Improves mobile sharing previews.
+      5. Updated title/description: Tailored to your site.
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
+      For full responsiveness, ensure your React components use Tailwind's responsive classes (e.g., sm:, md:).
+      Test in browser dev tools (F12 > Device Mode).
+      To enable PWA: Update manifest.json with icons and add a service worker (sw.js) in public/.
     -->
   </body>
 </html>
