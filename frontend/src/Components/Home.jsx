@@ -23,57 +23,65 @@ const Home = () => {
     // Fetch categories from backend
     fetchCategories();
   }, []);
-//function to fetch cake categories from backend API
+
+  // Function to fetch cake categories from backend API
   const fetchCategories = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/categories');
       const data = await response.json();
       if (data.success) {
         setCategories(data.categories);
+      } else {
+        // Fallback to default categories if API fails or no success
+        setFallbackCategories();
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
       // Fallback to default categories if API fails
-      setCategories([
-        {
-          id: 1,
-          name: 'Bento Cakes',
-          image: './images/bentocake.webp',
-          description: 'Adorable single-serving cakes perfect for gifting!',
-          basePrice: 25.00
-        },
-        {
-          id: 2,
-          name: 'Cakes',
-          image: './images/cakes.webp',
-          description: 'Timeless favorites for every occasion',
-          basePrice: 30.00
-        },
-        {
-          id: 3,
-          name: 'Celebration Cakes',
-          image: './images/CelebrationCake.jpg',
-          description: 'Make your special moments sweeter!',
-          basePrice: 40.00
-        },
-        {
-          id: 4,
-          name: 'Desserts',
-          image: './images/Desserts.png',
-          description: 'Sweet treats to satisfy your cravings',
-          basePrice: 15.00
-        },
-        {
-          id: 5,
-          name: 'Cup Cakes',
-          image: './images/Cupcakes.webp',
-          description: 'Bite-sized delights in various flavors',
-          basePrice: 8.00
-        }
-      ]);
+      setFallbackCategories();
     }
   };
-//render home page with hero section, categories grid, and call-to-action
+
+  const setFallbackCategories = () => {
+    setCategories([
+      {
+        id: 1,
+        name: 'Bento Cakes',
+        image: '/images/bentocake.webp',
+        description: 'Adorable single-serving cakes perfect for gifting!',
+        basePrice: 25.00
+      },
+      {
+        id: 2,
+        name: 'Cakes',
+        image: '/images/cakes.webp',
+        description: 'Timeless favorites for every occasion',
+        basePrice: 30.00
+      },
+      {
+        id: 3,
+        name: 'Celebration Cakes',
+        image: '/images/CelebrationCake.jpg',
+        description: 'Make your special moments sweeter!',
+        basePrice: 40.00
+      },
+      {
+        id: 4,
+        name: 'Desserts',
+        image: '/images/Desserts.png',
+        description: 'Sweet treats to satisfy your cravings',
+        basePrice: 15.00
+      },
+      {
+        id: 5,
+        name: 'Cup Cakes',
+        image: '/images/Cupcakes.webp',
+        description: 'Bite-sized delights in various flavors',
+        basePrice: 8.00
+      }
+    ]);
+  };
+
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
       {/* Hero Section */}
@@ -158,14 +166,6 @@ const Home = () => {
                           {category.description}
                         </p>
                         <div className="mt-auto">
-                          <div className="flex justify-between items-center mb-4">
-                            <p className="text-xl font-bold text-pink-600 dark:text-pink-400">
-                              From ${category.basePrice}
-                            </p>
-                            <span className="bg-pink-100 text-pink-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-pink-900 dark:text-pink-300">
-                              Popular
-                            </span>
-                          </div>
                           <Link
                             to={`/category/${category._id || category.id}`}
                             className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
