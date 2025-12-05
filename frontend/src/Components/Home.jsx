@@ -16,8 +16,12 @@ const Home = () => {
     // Check if user is logged in
     const userData = localStorage.getItem('user');
     if (userData) {
-      const user = JSON.parse(userData);
-      setUsername(user.username);
+      try {
+        const user = JSON.parse(userData);
+        setUsername(user.username);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
     }
 
     // Fetch categories from backend
@@ -41,43 +45,65 @@ const Home = () => {
       setFallbackCategories();
     }
   };
-//add images for categories
+
   const setFallbackCategories = () => {
     setCategories([
       {
-        id: 1,
+        _id: 1,
         name: 'Bento Cakes',
         image: '/images/bentocake.webp',
         description: 'Adorable single-serving cakes perfect for gifting!',
-        basePrice: 25.00
+        basePrice: 25.00,
+        sizes: [
+          { size: 'Small', price: 25.00 },
+          { size: 'Medium', price: 35.00 }
+        ]
       },
       {
-        id: 2,
+        _id: 2,
         name: 'Cakes',
         image: '/images/cakes.webp',
         description: 'Timeless favorites for every occasion',
-        basePrice: 30.00
+        basePrice: 30.00,
+        sizes: [
+          { size: '1kg', price: 30.00 },
+          { size: '2kg', price: 55.00 },
+          { size: '3kg', price: 80.00 }
+        ]
       },
       {
-        id: 3,
+        _id: 3,
         name: 'Celebration Cakes',
         image: '/images/CelebrationCake.jpg',
         description: 'Make your special moments sweeter!',
-        basePrice: 40.00
+        basePrice: 40.00,
+        sizes: [
+          { size: '1kg', price: 40.00 },
+          { size: '2kg', price: 75.00 },
+          { size: '3kg', price: 110.00 }
+        ]
       },
       {
-        id: 4,
+        _id: 4,
         name: 'Desserts',
         image: '/images/Desserts.png',
         description: 'Sweet treats to satisfy your cravings',
-        basePrice: 15.00
+        basePrice: 15.00,
+        sizes: [
+          { size: 'Single', price: 15.00 },
+          { size: 'Box of 6', price: 80.00 }
+        ]
       },
       {
-        id: 5,
+        _id: 5,
         name: 'Cup Cakes',
         image: '/images/Cupcakes.webp',
         description: 'Bite-sized delights in various flavors',
-        basePrice: 8.00
+        basePrice: 8.00,
+        sizes: [
+          { size: 'Single', price: 8.00 },
+          { size: 'Box of 12', price: 90.00 }
+        ]
       }
     ]);
   };
@@ -91,9 +117,11 @@ const Home = () => {
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
               {username ? (
                 <>
-                  <span className="block">Welcome,</span>
                   <span className="block text-pink-600 dark:text-pink-400">
-                    {username}!
+                    Welcome {username}!
+                  </span>
+                  <span className="block text-3xl mt-4 text-gray-700 dark:text-gray-300">
+                    to Shabee Cake Hub
                   </span>
                 </>
               ) : (
@@ -144,7 +172,7 @@ const Home = () => {
           <div className="mt-12">
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
               {categories.map((category) => (
-                <div key={category._id || category.id} className="flex flex-col">
+                <div key={category._id} className="flex flex-col">
                   <div className="flow-root bg-gray-50 dark:bg-gray-800 rounded-lg px-6 pb-8 h-full flex flex-col">
                     <div className="-mt-6 flex flex-col h-full">
                       <div className="relative h-64">
@@ -165,12 +193,28 @@ const Home = () => {
                         <p className="text-base text-gray-500 dark:text-gray-300 mb-4">
                           {category.description}
                         </p>
-                        <div className="mt-auto">
+                        <div className="space-y-2">
+                          <p className="text-lg font-bold text-pink-600 dark:text-pink-400">
+                            From ${category.basePrice}
+                          </p>
+                          {category.sizes && category.sizes.length > 0 && (
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              <span className="font-semibold">Sizes:</span>
+                              {category.sizes.map((size, index) => (
+                                <div key={index} className="flex justify-between">
+                                  <span>{size.size}</span>
+                                  <span>${size.price}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-4">
                           <Link
-                            to={`/category/${category._id || category.id}`}
+                            to={`/order`}
                             className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
                           >
-                            View Collection
+                            Order Now
                             <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                             </svg>
