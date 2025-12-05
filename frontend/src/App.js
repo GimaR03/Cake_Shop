@@ -7,14 +7,14 @@ import Admin from './Components/Admin';
 import About from './Components/About';
 import Contact from './Components/Contact';
 import Footer from './Components/Footer';
-import Register from './Components/Register';
+// Remove Register import
 
 // Placeholder components for other routes
-const OnlineOrder = () => <div className="min-h-screen pt-16 bg-white dark:bg-gray-900"><h1 className="text-4xl font-bold text-center mt-10 text-gray-900 dark:text-white">Online Order</h1></div>;
-const Cart = () => <div className="min-h-screen pt-16 bg-white dark:bg-gray-900"><h1 className="text-4xl font-bold text-center mt-10 text-gray-900 dark:text-white">Your Cart</h1></div>;
+const OnlineOrder = () => <div className="min-h-screen pt-20 bg-white dark:bg-gray-900"><h1 className="text-4xl font-bold text-center mt-10 text-gray-900 dark:text-white">Online Order</h1></div>;
+const Cart = () => <div className="min-h-screen pt-20 bg-white dark:bg-gray-900"><h1 className="text-4xl font-bold text-center mt-10 text-gray-900 dark:text-white">Your Cart</h1></div>;
 
-// Protected Route component
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+// Protected Route component for Admin
+const ProtectedAdminRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -50,8 +50,8 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/login" />;
   }
 
-  // If adminOnly is required and user is not admin
-  if (adminOnly && !isAdmin) {
+  // If user is not admin
+  if (!isAdmin) {
     return <Navigate to="/" />;
   }
 
@@ -138,13 +138,13 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/login" element={<Login updateUser={updateUser} />} />
-            <Route path="/register" element={<Register updateUser={updateUser} />} />
+            {/* Remove Register route */}
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute adminOnly={true}>
+                <ProtectedAdminRoute>
                   <Admin />
-                </ProtectedRoute>
+                </ProtectedAdminRoute>
               } 
             />
             <Route path="*" element={<Navigate to="/" />} />
