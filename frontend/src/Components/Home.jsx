@@ -41,7 +41,7 @@ const Home = () => {
       setFallbackCategories();
     }
   };
-
+//add images for categories
   const setFallbackCategories = () => {
     setCategories([
       {
