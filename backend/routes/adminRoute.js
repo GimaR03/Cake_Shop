@@ -1,21 +1,41 @@
 const express = require('express');
-const { addProduct, getProductsByCategory } = require('../controllers/productController');
-// Remove or comment out the auth import temporarily
-// const { authenticateToken } = require('../middleware/auth');
+const { 
+    addProduct, 
+    getProductsByCategory,
+    getAllProducts,
+    updateProduct,
+    deleteProduct 
+} = require('../controllers/productController');
+const { authenticateToken } = require('../middleware/auth');
+const { 
+    addCategory, 
+    getCategories,
+    updateCategory,
+    deleteCategory 
+} = require('../controllers/categoryController');
 
 const router = express.Router();
 
-// Create a dummy auth middleware for now
-const dummyAuth = (req, res, next) => {
-  console.log('Auth middleware called - allowing all requests for now');
-  req.user = { id: 'admin', role: 'admin' };
-  next();
-};
+// Category Routes
+router.post('/admin/categories', authenticateToken, addCategory);
+router.get('/categories', getCategories);
+router.put('/admin/categories/:id', authenticateToken, updateCategory);
+router.delete('/admin/categories/:id', authenticateToken, deleteCategory);
 
-// Existing category routes...
-
-// New product routes - using dummyAuth temporarily
-router.post('/admin/products', dummyAuth, addProduct);
+// Product Routes
+router.post('/admin/products', authenticateToken, addProduct);
+router.get('/products', getAllProducts);
 router.get('/products/category/:categoryId', getProductsByCategory);
+router.put('/admin/products/:id', authenticateToken, updateProduct);
+router.delete('/admin/products/:id', authenticateToken, deleteProduct);
+
+// Admin check route
+router.get('/admin/check', authenticateToken, (req, res) => {
+    res.json({ 
+        success: true, 
+        message: 'Admin authenticated',
+        user: req.user 
+    });
+});
 
 module.exports = router;
