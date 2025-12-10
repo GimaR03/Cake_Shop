@@ -1,243 +1,137 @@
-const Product = require('../models/Product');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const Product = require("../models/Product");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
-// Ensure uploads directory exists
-const uploadDir = 'uploads/';
+// Ensure uploads folder exists
+const uploadDir = path.join(__dirname, "..", "uploads");
 if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure Multer
+// Multer storage config
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
-        cb(null, uniqueName);
-    }
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, unique + path.extname(file.originalname));
+  },
 });
 
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-        cb(null, true);
-    } else {
-        cb(new Error('Only images (PNG, JPG, JPEG, WEBP) are allowed'));
-    }
+  const allowed = ["image/jpeg", "image/png", "image/webp"];
+  if (allowed.includes(file.mimetype)) cb(null, true);
+  else cb(new Error("Only JPG, PNG, WEBP allowed"));
 };
 
-const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
-});
+const upload = multer({ storage, fileFilter });
 
-// Add a new product
-const addProduct = async (req, res) => {
+// Add product
+exports.addProduct = [
+  upload.single("image"),
+  async (req, res) => {
     try {
-        upload.single('image')(req, res, async (err) => {
-            if (err) {
-                console.error('File upload error:', err);
-                return res.status(400).json({ 
-                    success: false, 
-                    message: err.message || 'Error uploading file' 
-                });
-            }
+      if (!req.file)
+        return res
+          .status(400)
+          .json({ success: false, message: "Image required" });
 
-            if (!req.file) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Image file is required' 
-                });
-            }
+      const { name, price, weight, flavours, description, categoryId } = req.body;
 
-            const { name, price, weight, flavours, description, categoryId } = req.body;
+      const product = new Product({
+        name,
+        price,
+        weight,
+        flavours,
+        description,
+        image: `/uploads/${req.file.filename}`,
+        categoryId,
+      });
 
-            // Validate required fields
-            const requiredFields = ['name', 'price', 'flavours', 'description', 'categoryId'];
-            const missingFields = requiredFields.filter(field => !req.body[field]);
-            
-            if (missingFields.length > 0) {
-                // Delete uploaded file if validation fails
-                if (req.file && fs.existsSync(req.file.path)) {
-                    fs.unlinkSync(req.file.path);
-                }
-                return res.status(400).json({ 
-                    success: false, 
-                    message: `Missing required fields: ${missingFields.join(', ')}` 
-                });
-            }
+      await product.save();
 
-            // Create product
-            const product = new Product({
-                name,
-                price: parseFloat(price),
-                weight: weight ? parseFloat(weight) : undefined,
-                flavours,
-                description,
-                image: `/uploads/${req.file.filename}`,
-                categoryId
-            });
-
-            await product.save();
-            
-            res.status(201).json({ 
-                success: true, 
-                message: 'Product added successfully',
-                product: {
-                    id: product._id,
-                    name: product.name,
-                    price: product.price,
-                    image: product.image,
-                    categoryId: product.categoryId
-                }
-            });
-        });
+      res.status(201).json({
+        success: true,
+        message: "Product added",
+        product,
+      });
     } catch (error) {
-        console.error('Error adding product:', error);
-        
-        // Clean up uploaded file on error
-        if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: 'Internal server error',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+      console.error("Add product error:", error);
+      res.status(500).json({ success: false, message: "Error adding product" });
     }
-};
+  },
+];
 
 // Get all products
-const getAllProducts = async (req, res) => {
-    try {
-        const products = await Product.find()
-            .populate('categoryId', 'name')
-            .sort({ createdAt: -1 });
-        
-        res.json({ 
-            success: true, 
-            count: products.length,
-            products 
-        });
-    } catch (error) {
-        console.error('Error fetching products:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error fetching products' 
-        });
-    }
+exports.getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find()
+      .populate("categoryId", "name")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: products.length,
+      products,
+    });
+  } catch (error) {
+    console.error("Get products error:", error);
+    res.status(500).json({ success: false, message: "Error fetching products" });
+  }
 };
 
 // Get products by category
-const getProductsByCategory = async (req, res) => {
-    try {
-        const { categoryId } = req.params;
-        
-        if (!categoryId) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Category ID is required' 
-            });
-        }
+exports.getProductsByCategory = async (req, res) => {
+  try {
+    const products = await Product.find({
+      categoryId: req.params.categoryId,
+    }).populate("categoryId", "name");
 
-        const products = await Product.find({ categoryId })
-            .populate('categoryId', 'name')
-            .sort({ createdAt: -1 });
-        
-        res.json({ 
-            success: true, 
-            count: products.length,
-            products 
-        });
-    } catch (error) {
-        console.error('Error fetching products by category:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error fetching products' 
-        });
-    }
+    res.json({ success: true, count: products.length, products });
+  } catch (error) {
+    console.error("Category products error:", error);
+    res.status(500).json({ success: false, message: "Error fetching products" });
+  }
 };
 
 // Update product
-const updateProduct = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const updates = req.body;
-        
-        const product = await Product.findByIdAndUpdate(
-            id, 
-            updates, 
-            { new: true, runValidators: true }
-        );
-        
-        if (!product) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Product not found' 
-            });
-        }
-        
-        res.json({ 
-            success: true, 
-            message: 'Product updated successfully',
-            product 
-        });
-    } catch (error) {
-        console.error('Error updating product:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error updating product' 
-        });
-    }
+exports.updateProduct = async (req, res) => {
+  try {
+    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+
+    if (!updated)
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+
+    res.json({ success: true, message: "Product updated", updated });
+  } catch (error) {
+    console.error("Update product error:", error);
+    res.status(500).json({ success: false, message: "Error updating product" });
+  }
 };
 
 // Delete product
-const deleteProduct = async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const product = await Product.findByIdAndDelete(id);
-        
-        if (!product) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Product not found' 
-            });
-        }
-        
-        // Delete associated image file
-        if (product.image) {
-            const imagePath = path.join(__dirname, '..', product.image);
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath);
-            }
-        }
-        
-        res.json({ 
-            success: true, 
-            message: 'Product deleted successfully' 
-        });
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error deleting product' 
-        });
-    }
-};
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
 
-module.exports = { 
-    addProduct, 
-    getAllProducts, 
-    getProductsByCategory, 
-    updateProduct, 
-    deleteProduct 
+    if (!product)
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+
+    // Remove image file
+    if (product.image) {
+      const imgPath = path.join(__dirname, "..", product.image);
+      if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+    }
+
+    res.json({ success: true, message: "Product deleted" });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    res.status(500).json({ success: false, message: "Error deleting product" });
+  }
 };
