@@ -1,9 +1,24 @@
+const mongoose = require("mongoose");
 const Category = require("../models/Category");
 const Product = require("../models/Product");
+
+// Helper to ensure DB is connected before attempting queries
+function ensureDbConnected(res) {
+  if (mongoose.connection.readyState !== 1) {
+    res.status(503).json({
+      success: false,
+      message: "Service unavailable: database not connected",
+    });
+    return false;
+  }
+  return true;
+}
 
 // Add new category
 exports.addCategory = async (req, res) => {
   try {
+    if (!ensureDbConnected(res)) return;
+
     const { name, description } = req.body;
 
     if (!name)
@@ -28,6 +43,8 @@ exports.addCategory = async (req, res) => {
 // Get all categories
 exports.getCategories = async (req, res) => {
   try {
+    if (!ensureDbConnected(res)) return;
+
     const categories = await Category.find().sort({ name: 1 });
 
     res.json({
@@ -44,6 +61,8 @@ exports.getCategories = async (req, res) => {
 // Update category
 exports.updateCategory = async (req, res) => {
   try {
+    if (!ensureDbConnected(res)) return;
+
     const category = await Category.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -69,6 +88,8 @@ exports.updateCategory = async (req, res) => {
 // Delete category
 exports.deleteCategory = async (req, res) => {
   try {
+    if (!ensureDbConnected(res)) return;
+
     const hasProducts = await Product.countDocuments({
       categoryId: req.params.id,
     });
