@@ -1,134 +1,98 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const path = require("path");
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 
-// Middleware
-app.use(
-  cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? process.env.FRONTEND_URL
-        : "http://localhost:3000",
-    credentials: true,
-  })
-);
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('Created uploads directory');
+}
 
+// Middleware
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'], // Add common frontend ports
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use('/uploads', express.static(uploadsDir));
 
-// MongoDB connection
-const MONGO_URI =
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/cake-shop";
-<<<<<<< Updated upstream
-
-mongoose
-  .connect(MONGO_URI)
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => console.error("MongoDB connection error:", err.message));
-=======
-
-// Optional: avoid extremely long internal buffering window if desired
-// mongoose.set('bufferCommands', false);
-
-mongoose.connection.on("connected", () => {
-  console.log("Mongoose connection state: connected");
-});
-mongoose.connection.on("disconnected", () => {
-  console.log("Mongoose connection state: disconnected");
-});
-mongoose.connection.on("error", (err) => {
-  console.error("Mongoose connection error event:", err && err.message ? err.message : err);
-});
-
-async function connectWithRetry(retries = 5, delay = 3000) {
-  let attempt = 0;
-  const opts = {
-    // Make connection attempts fail faster so our retry loop can act
-    serverSelectionTimeoutMS: 5000,
-  };
-
-  while (attempt < retries) {
+// Simple MongoDB connection without deprecated options
+const connectDB = async () => {
     try {
-      attempt++;
-      console.log(`Attempting MongoDB connection (attempt ${attempt}/${retries}) to ${MONGO_URI}`);
-      await mongoose.connect(MONGO_URI, opts);
-      console.log("MongoDB connected successfully");
-      return;
-    } catch (err) {
-      console.error(`MongoDB connection error (attempt ${attempt}):`, err && err.message ? err.message : err);
-      if (attempt < retries) {
-        console.log(`Retrying in ${delay}ms...`);
-        await new Promise((res) => setTimeout(res, delay));
-      }
+        // Try multiple connection options
+        const connectionString = process.env.MONGODB_URI || 'mongodb://localhost:27017/cake-shop';
+        console.log(`Attempting to connect to MongoDB at: ${connectionString}`);
+        
+        await mongoose.connect(connectionString);
+        console.log('✅ MongoDB connected successfully');
+    } catch (error) {
+        console.error('❌ MongoDB connection error:', error.message);
+        console.log('⚠️ Starting server without database connection...');
+        console.log('💡 To fix: Install MongoDB or use MongoDB Atlas cloud service');
+        console.log('📖 Instructions:');
+        console.log('   1. Install MongoDB locally: https://www.mongodb.com/try/download/community');
+        console.log('   2. OR Use MongoDB Atlas (free cloud): https://www.mongodb.com/cloud/atlas');
     }
-  }
+};
 
-  console.error(
-    `Failed to connect to MongoDB after ${retries} attempts. The app will continue running but database functionality will be unavailable until a connection is established.`
-  );
-}
-
-// Start connection attempts (non-blocking for server start)
-connectWithRetry().catch((err) => console.error("Unexpected error while connecting to MongoDB:", err));
->>>>>>> Stashed changes
+// Connect to database
+connectDB();
 
 // Routes
 const adminRoutes = require("./routes/adminRoute");
 app.use("/api", adminRoutes);
 
-// Health check
-app.get("/api/health", (req, res) => {
-  const state = mongoose.connection.readyState; // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
-  const stateText = state === 1 ? "Connected" : state === 2 ? "Connecting" : "Disconnected";
-  res.json({
-    status: "OK",
-    timestamp: new Date().toISOString(),
-<<<<<<< Updated upstream
-    database:
-      mongoose.connection.readyState === 1 ? "Connected" : "Disconnected",
-=======
-    database: stateText,
->>>>>>> Stashed changes
-  });
+// Health check route
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+        message: 'Server is running'
+    });
 });
 
-// 500 error handler
+// Test route
+app.get('/api/test', (req, res) => {
+    res.json({ 
+        success: true, 
+        message: 'API is working!',
+        time: new Date().toISOString()
+    });
+});
+
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error("SERVER ERROR:", err);
-  res.status(500).json({
-    success: false,
-    message: "Server error",
-<<<<<<< Updated upstream
-    error: process.env.NODE_ENV === "development" ? err.message : undefined,
-=======
-    error: NODE_ENV === "development" ? (err && err.message ? err.message : err) : undefined,
->>>>>>> Stashed changes
-  });
+    console.error('❌ Error:', err.stack);
+    res.status(500).json({ 
+        success: false, 
+        message: 'Something went wrong!',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
 });
 
 // 404 handler
-app.use("*", (req, res) => {
-  res.status(404).json({ success: false, message: "Route not found" });
+app.use('*', (req, res) => {
+    res.status(404).json({ 
+        success: false, 
+        message: 'Route not found',
+        path: req.originalUrl 
+    });
 });
 
-<<<<<<< Updated upstream
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV}`)
-);
-=======
-app.listen(PORT, () => console.log(`Server running on port ${PORT} in ${NODE_ENV}`));
-
-process.on("unhandledRejection", (reason, p) => {
-  console.error("Unhandled Rejection at:", p, "reason:", reason);
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`🔗 Test endpoint: http://localhost:${PORT}/api/test`);
+    console.log(`📂 Uploads served from: http://localhost:${PORT}/uploads/`);
 });
->>>>>>> Stashed changes
-
-module.exports = app;
