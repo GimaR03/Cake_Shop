@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { API_ENDPOINTS, API_URL } from '../config/api';
 
 const ViewCategoryAdmin = () => {
   const { categoryId } = useParams(); // Get categoryId from URL
@@ -13,7 +14,7 @@ const ViewCategoryAdmin = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/products/category/${categoryId}`);
+      const response = await fetch(API_ENDPOINTS.PRODUCTS_BY_CATEGORY(categoryId));
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);
@@ -56,7 +57,7 @@ const ViewCategoryAdmin = () => {
               {products.map((product) => (
                 <div key={product._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                   <img
-                    src={`http://localhost:5000${product.image}`} // Full URL to backend image
+                    src={`${API_URL}${product.image}`} // Full URL to backend image
                     alt={product.name}
                     className="w-full h-48 object-cover"
                     onError={(e) => {
@@ -66,7 +67,7 @@ const ViewCategoryAdmin = () => {
                   <div className="p-4">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">{product.name}</h3>
                     <p className="text-gray-600 dark:text-gray-300 mt-2">{product.description}</p>
-                    <p className="text-pink-600 font-bold mt-2">Price: ${product.price}</p>
+                    <p className="text-pink-600 font-bold mt-2">Price: Rs. {product.price}</p>
                     {product.weight && <p className="text-gray-600">Weight: {product.weight}g</p>}
                     <p className="text-gray-600">Flavours: {product.flavours}</p>
                   </div>
