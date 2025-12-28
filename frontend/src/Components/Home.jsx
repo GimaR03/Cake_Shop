@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api';
 
 const Home = () => {
-  const [darkMode, setDarkMode] = useState(false);
   const [categories, setCategories] = useState([]);
   const [nickname, setNickname] = useState('');
 
@@ -23,16 +22,6 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      localStorage.theme === 'dark' ||
-      (!('theme' in localStorage) &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches)
-    ) {
-      setDarkMode(true);
-    } else {
-      setDarkMode(false);
-    }
-
     const userData = localStorage.getItem('user');
     if (userData) {
       try {
@@ -77,7 +66,7 @@ const Home = () => {
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen">
       {/* Hero Section */}
       <div className="pt-20 pb-16 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

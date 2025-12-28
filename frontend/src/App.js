@@ -19,17 +19,39 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    if (localStorage.theme === 'dark') {
+    // Check initial theme
+    if (
+      localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ) {
       document.documentElement.classList.add('dark');
       setDarkMode(true);
+      localStorage.theme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      setDarkMode(false);
+      localStorage.theme = 'light';
     }
   }, []);
+
+  // Handle dark mode toggle
+  const handleDarkModeToggle = (newDarkMode) => {
+    setDarkMode(newDarkMode);
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.theme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.theme = 'light';
+    }
+  };
 
   return (
     <CartProvider>
       <Router>
         <div className={darkMode ? 'dark' : ''}>
-          <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
+          <Navbar darkMode={darkMode} setDarkMode={handleDarkModeToggle} />
           <main className="pt-16">
             <Routes>
               <Route path="/" element={<Home />} />
