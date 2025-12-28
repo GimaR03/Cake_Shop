@@ -47,10 +47,15 @@ const connectDB = async () => {
 // Connect to database
 connectDB();
 
-// Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 API available at http://localhost:${PORT}/api`);
-});
+// Export app for Vercel serverless functions
+module.exports = app;
+
+// Only listen in development or non-Vercel environments
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 API available at http://localhost:${PORT}/api`);
+  });
+}
 
