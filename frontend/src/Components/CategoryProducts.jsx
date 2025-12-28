@@ -302,7 +302,7 @@ const CategoryProducts = () => {
                   {selectedProduct.image && (
                     <div className="w-full h-64 rounded-lg overflow-hidden">
                       <img
-                        src={`http://localhost:5000${selectedProduct.image}`}
+                        src={`${API_URL}${selectedProduct.image}`}
                         alt={selectedProduct.name || "Product"}
                         className="w-full h-full object-cover"
                         onError={(e) => {
