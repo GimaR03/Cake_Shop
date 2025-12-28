@@ -1,8 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaArrowLeft, FaShoppingCart, FaTimes, FaMapMarkerAlt, FaPhone, FaWhatsapp } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { API_ENDPOINTS, API_URL } from '../config/api';
+
+// Map category IDs/names to display names
+const categoryMap = {
+  '1': 'Bento Cakes',
+  '2': 'Cakes',
+  '3': 'Celebration Cakes',
+  '4': 'Desserts',
+  '5': 'Cup Cakes',
+  'bento-cakes': 'Bento Cakes',
+  'cakes': 'Cakes',
+  'celebration-cakes': 'Celebration Cakes',
+  'desserts': 'Desserts',
+  'cupcakes': 'Cup Cakes',
+  'cup-cakes': 'Cup Cakes',
+};
+
+const categoryImages = {
+  'Bento Cakes': '/images/bentocake.webp',
+  'Cakes': '/images/cakes.webp',
+  'Celebration Cakes': '/images/CelebrationCake.jpg',
+  'Desserts': '/images/Desserts.png',
+  'Cup Cakes': '/images/Cupcakes.webp',
+};
 
 const CategoryProducts = () => {
   const { categoryName } = useParams();
@@ -57,41 +80,7 @@ const CategoryProducts = () => {
     window.open(contactInfo.googleMapsLink, '_blank');
   };
 
-  // Map category IDs/names to display names
-  const categoryMap = {
-    '1': 'Bento Cakes',
-    '2': 'Cakes',
-    '3': 'Celebration Cakes',
-    '4': 'Desserts',
-    '5': 'Cup Cakes',
-    'bento-cakes': 'Bento Cakes',
-    'cakes': 'Cakes',
-    'celebration-cakes': 'Celebration Cakes',
-    'desserts': 'Desserts',
-    'cupcakes': 'Cup Cakes',
-    'cup-cakes': 'Cup Cakes',
-  };
-
-  const categoryImages = {
-    'Bento Cakes': '/images/bentocake.webp',
-    'Cakes': '/images/cakes.webp',
-    'Celebration Cakes': '/images/CelebrationCake.jpg',
-    'Desserts': '/images/Desserts.png',
-    'Cup Cakes': '/images/Cupcakes.webp',
-  };
-
-  useEffect(() => {
-    // Get the actual category name from the URL parameter
-    const actualCategoryName = categoryMap[categoryName] || categoryName || 'Bento Cakes';
-    setCategoryInfo({
-      name: actualCategoryName,
-      image: categoryImages[actualCategoryName] || '/images/bentocake.webp'
-    });
-
-    fetchProducts(actualCategoryName);
-  }, [categoryName]);
-
-  const fetchProducts = async (categoryName) => {
+  const fetchProducts = useCallback(async (categoryName) => {
     setLoading(true);
     try {
       const response = await fetch(API_ENDPOINTS.PRODUCTS_BY_CATEGORY(categoryName));
@@ -109,7 +98,18 @@ const CategoryProducts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Get the actual category name from the URL parameter
+    const actualCategoryName = categoryMap[categoryName] || categoryName || 'Bento Cakes';
+    setCategoryInfo({
+      name: actualCategoryName,
+      image: categoryImages[actualCategoryName] || '/images/bentocake.webp'
+    });
+
+    fetchProducts(actualCategoryName);
+  }, [categoryName, fetchProducts]);
 
   return (
     <div className="min-h-screen pt-20 bg-gray-50 dark:bg-gray-900">

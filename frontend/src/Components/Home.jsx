@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api';
 
@@ -6,6 +6,21 @@ const Home = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [categories, setCategories] = useState([]);
   const [nickname, setNickname] = useState('');
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.CATEGORIES);
+      const data = await response.json();
+      if (data.success) {
+        setCategories(data.categories);
+      } else {
+        setFallbackCategories();
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setFallbackCategories();
+    }
+  }, []);
 
   useEffect(() => {
     if (
@@ -29,22 +44,7 @@ const Home = () => {
     }
 
     fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(API_ENDPOINTS.CATEGORIES);
-      const data = await response.json();
-      if (data.success) {
-        setCategories(data.categories);
-      } else {
-        setFallbackCategories();
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      setFallbackCategories();
-    }
-  };
+  }, [fetchCategories]);
 
   const setFallbackCategories = () => {
     setCategories([

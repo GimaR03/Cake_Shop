@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { FaTimes, FaEye, FaArrowLeft, FaEdit, FaTrash } from "react-icons/fa";
+import { useState, useEffect, useCallback } from "react";
+import { FaEye, FaArrowLeft, FaEdit, FaTrash } from "react-icons/fa";
 import { API_ENDPOINTS, API_URL } from "../config/api";
 
 const Admin = () => {
@@ -30,6 +29,21 @@ const Admin = () => {
   });
   const [adminNickname, setAdminNickname] = useState('');
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.CATEGORIES);
+      const data = await response.json();
+      if (data.success) {
+        setCategories(data.categories);
+      } else {
+        setFallbackCategories();
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setFallbackCategories();
+    }
+  }, []);
+
   useEffect(() => {
     // Get admin nickname from localStorage
     const userData = localStorage.getItem('user');
@@ -46,22 +60,7 @@ const Admin = () => {
     }
     
     fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(API_ENDPOINTS.CATEGORIES);
-      const data = await response.json();
-      if (data.success) {
-        setCategories(data.categories);
-      } else {
-        setFallbackCategories();
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      setFallbackCategories();
-    }
-  };
+  }, [fetchCategories]);
 
   const setFallbackCategories = () => {
     setCategories([
