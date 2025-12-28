@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { FaTrash, FaPlus, FaMinus, FaShoppingCart, FaArrowLeft, FaTimes, FaMapMarkerAlt, FaPhone, FaWhatsapp } from 'react-icons/fa';
 import { API_URL } from '../config/api';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal } = useCart();
@@ -149,12 +150,13 @@ const Cart = () => {
                         {item.image && (
                           <div className="w-full sm:w-32 h-32 flex-shrink-0">
                             <img
-                              src={`${API_URL}${item.image}`}
+                              src={getImageUrl(item.image)}
                               alt={item.name || 'Product'}
                               className="w-full h-full object-cover rounded-lg"
                               onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/200x200?text=No+Image';
+                                handleImageError(e, 0);
                               }}
+                              loading="lazy"
                             />
                           </div>
                         )}

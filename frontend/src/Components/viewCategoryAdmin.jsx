@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { API_ENDPOINTS, API_URL } from '../config/api';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 
 const ViewCategoryAdmin = () => {
   const { categoryId } = useParams(); // Get categoryId from URL
@@ -57,12 +58,13 @@ const ViewCategoryAdmin = () => {
               {products.map((product) => (
                 <div key={product._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                   <img
-                    src={`${API_URL}${product.image}`} // Full URL to backend image
+                    src={getImageUrl(product.image)}
                     alt={product.name}
                     className="w-full h-48 object-cover"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                      handleImageError(e, 0);
                     }}
+                    loading="lazy"
                   />
                   <div className="p-4">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">{product.name}</h3>

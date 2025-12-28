@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { FaArrowLeft, FaShoppingCart, FaTimes, FaMapMarkerAlt, FaPhone, FaWhatsapp } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { API_ENDPOINTS, API_URL } from '../config/api';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 
 // Map category IDs/names to display names
 const categoryMap = {
@@ -193,12 +194,13 @@ const CategoryProducts = () => {
                     {product.image && (
                       <div className="relative h-64 overflow-hidden">
                         <img
-                          src={`${API_URL}${product.image}`}
+                          src={getImageUrl(product.image)}
                           alt={product.name || "Product"}
                           className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
                           onError={(e) => {
-                            e.target.src = "https://via.placeholder.com/400x300?text=No+Image";
+                            handleImageError(e, 0);
                           }}
+                          loading="lazy"
                         />
                       </div>
                     )}
@@ -302,12 +304,13 @@ const CategoryProducts = () => {
                   {selectedProduct.image && (
                     <div className="w-full h-64 rounded-lg overflow-hidden">
                       <img
-                        src={`${API_URL}${selectedProduct.image}`}
+                        src={getImageUrl(selectedProduct.image)}
                         alt={selectedProduct.name || "Product"}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.src = "https://via.placeholder.com/400x300?text=No+Image";
+                          handleImageError(e, 0);
                         }}
+                        loading="lazy"
                       />
                     </div>
                   )}

@@ -20,10 +20,22 @@ app.use(express.urlencoded({ extended: true }));
 // Handle both local storage (Render) and serverless (Vercel)
 if (process.env.VERCEL) {
   // For Vercel, try to serve from /tmp (temporary, files will be deleted)
-  app.use('/uploads', express.static('/tmp/uploads'));
+  app.use('/uploads', express.static('/tmp/uploads', {
+    setHeaders: (res, path) => {
+      // Add CORS headers for images
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  }));
 } else {
   // For Render/traditional servers, use uploads folder
-  app.use('/uploads', express.static('uploads'));
+  app.use('/uploads', express.static('uploads', {
+    setHeaders: (res, path) => {
+      // Add CORS headers for images
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  }));
 }
 
 // Middleware to ensure MongoDB connection before API routes

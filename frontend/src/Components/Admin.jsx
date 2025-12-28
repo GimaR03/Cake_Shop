@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FaEye, FaArrowLeft, FaEdit, FaTrash } from "react-icons/fa";
 import { API_ENDPOINTS, API_URL } from "../config/api";
+import { getImageUrl, handleImageError } from "../utils/imageUtils";
 
 const Admin = () => {
   const [categories, setCategories] = useState([]);
@@ -530,12 +531,13 @@ const Admin = () => {
                       {product.image && (
                         <div className="mb-4">
                           <img
-                            src={`${API_URL}${product.image}`}
+                            src={getImageUrl(product.image)}
                             alt={product.name || "Product"}
                             className="w-full h-48 object-cover rounded-lg"
                             onError={(e) => {
-                              e.target.src = "https://via.placeholder.com/400x300?text=No+Image";
+                              handleImageError(e, 0);
                             }}
+                            loading="lazy"
                           />
                         </div>
                       )}
