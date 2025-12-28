@@ -31,16 +31,12 @@ let dbConnected = false;
 
 async function connectWithRetry(retries = 5, delay = 3000) {
   let attempt = 0;
-  const opts = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  };
 
   while (attempt < retries) {
     try {
       attempt++;
       console.log(`Attempting MongoDB connection (attempt ${attempt}/${retries}) to ${MONGO_URI}`);
-      await mongoose.connect(MONGO_URI, opts);
+      await mongoose.connect(MONGO_URI);
       console.log("MongoDB connected successfully");
       dbConnected = true;
       return;
