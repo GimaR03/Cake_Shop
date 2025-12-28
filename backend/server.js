@@ -19,33 +19,82 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (uploaded images)
 app.use('/uploads', express.static('uploads'));
 
+// Middleware to ensure MongoDB connection before API routes
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed',
+      error: error.message
+    });
+  }
+});
+
 // Routes
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/users'));
 app.use('/api/products', require('./routes/products'));
 
 // Health check route
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Cake Shop Backend is running',
-    timestamp: new Date().toISOString()
-  });
+app.get('/api/health', async (req, res) => {
+  try {
+    // Ensure DB is connected
+    await connectDB();
+    res.json({ 
+      status: 'OK', 
+      message: 'Cake Shop Backend is running',
+      timestamp: new Date().toISOString(),
+      dbConnected: mongoose.connection.readyState === 1
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'Database connection failed',
+      error: error.message
+    });
+  }
 });
 
-// MongoDB Connection
+// MongoDB Connection - Handle for both serverless and traditional servers
+let isConnected = false;
+
 const connectDB = async () => {
+  // If already connected, return
+  if (isConnected) {
+    return;
+  }
+
+  // If connection exists but not ready, wait for it
+  if (mongoose.connection.readyState === 1) {
+    isConnected = true;
+    return;
+  }
+
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+    });
+    isConnected = true;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
+    // Don't exit in serverless - let the function handle the error
+    if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+      process.exit(1);
+    }
+    throw error;
   }
 };
 
-// Connect to database
-connectDB();
+// Connect to database (only in non-serverless environments)
+// In Vercel, connection will happen on first request
+if (!process.env.VERCEL) {
+  connectDB();
+}
 
 // Export app for Vercel serverless functions
 module.exports = app;
