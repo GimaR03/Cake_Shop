@@ -39,6 +39,21 @@ app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/users'));
 app.use('/api/products', require('./routes/products'));
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Cake Shop Backend API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      register: '/api/register',
+      login: '/api/login',
+      products: '/api/products'
+    }
+  });
+});
+
 // Health check route
 app.get('/api/health', async (req, res) => {
   try {
