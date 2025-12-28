@@ -17,7 +17,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files (uploaded images)
-app.use('/uploads', express.static('uploads'));
+// Handle both local storage (Render) and serverless (Vercel)
+if (process.env.VERCEL) {
+  // For Vercel, try to serve from /tmp (temporary, files will be deleted)
+  app.use('/uploads', express.static('/tmp/uploads'));
+} else {
+  // For Render/traditional servers, use uploads folder
+  app.use('/uploads', express.static('uploads'));
+}
 
 // Middleware to ensure MongoDB connection before API routes
 app.use('/api', async (req, res, next) => {

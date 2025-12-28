@@ -6,13 +6,34 @@ const Product = require('../models/Product');
 const router = express.Router();
 
 // Configure multer for file uploads
+// Handle both local storage (Render) and serverless (Vercel)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = 'uploads/products';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    // For Vercel/serverless, use /tmp directory (only writable location)
+    // For Render/traditional servers, use uploads/products
+    const uploadDir = process.env.VERCEL 
+      ? '/tmp/uploads/products' 
+      : 'uploads/products';
+    
+    try {
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    } catch (error) {
+      console.error('Error creating upload directory:', error);
+      // Fallback to /tmp if mkdir fails
+      const fallbackDir = '/tmp/uploads/products';
+      try {
+        if (!fs.existsSync(fallbackDir)) {
+          fs.mkdirSync(fallbackDir, { recursive: true });
+        }
+        cb(null, fallbackDir);
+      } catch (fallbackError) {
+        console.error('Error creating fallback directory:', fallbackError);
+        cb(new Error('Cannot create upload directory'));
+      }
     }
-    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -145,7 +166,18 @@ router.post('/', authenticateToken, (req, res, next) => {
     if (description && description.trim()) productData.description = description.trim();
     if (req.file) {
       // Store relative path for image
-      productData.image = `/uploads/products/${req.file.filename}`;
+      // For Vercel, files in /tmp won't persist, so this is a temporary solution
+      // For Render, this will work correctly
+      const imagePath = process.env.VERCEL 
+        ? `/uploads/products/${req.file.filename}` // Vercel uses /tmp/uploads/products
+        : `/uploads/products/${req.file.filename}`; // Render uses uploads/products
+      productData.image = imagePath;
+      
+      // Warn if using Vercel (files won't persist)
+      if (process.env.VERCEL) {
+        console.warn('⚠️ WARNING: Vercel serverless - uploaded files in /tmp will be deleted after function execution!');
+        console.warn('⚠️ Consider switching to Render for persistent file storage.');
+      }
     }
 
     console.log('Product data to save:', productData);
