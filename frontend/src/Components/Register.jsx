@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaUser, FaLock, FaEnvelope, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaLock, FaEye, FaEyeSlash, FaUserCircle } from 'react-icons/fa';
+import { API_ENDPOINTS, API_URL } from '../config/api';
 
 const Register = ({ updateUser }) => {
   const [formData, setFormData] = useState({
+    nickname: '',
+    gender: '',
     username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -26,8 +27,8 @@ const Register = ({ updateUser }) => {
     e.preventDefault();
     
     // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+    if (!formData.nickname || !formData.gender || !formData.username || !formData.password) {
+      setError('Please fill in all fields');
       return;
     }
     
@@ -40,17 +41,29 @@ const Register = ({ updateUser }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/register', {
+      const requestData = {
+        nickname: formData.nickname.trim(),
+        gender: formData.gender,
+        username: formData.username.trim(),
+        password: formData.password
+      };
+
+      console.log('Registering user with data:', { ...requestData, password: '***' });
+
+      const response = await fetch(API_ENDPOINTS.REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password
-        }),
+        body: JSON.stringify(requestData),
       });
+
+      // Check if response is ok
+      if (!response.ok) {
+        // Try to parse error response
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || `Server error: ${response.status}`);
+      }
 
       const data = await response.json();
 
@@ -66,11 +79,20 @@ const Register = ({ updateUser }) => {
         
         alert('Registration successful!');
         navigate('/');
+        window.location.reload(); // Refresh to update navbar
       } else {
-        setError(data.message || 'Registration failed');
+        setError(data.message || data.error || 'Registration failed');
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      console.error('Registration error:', error);
+      // Show detailed error message
+      if (error.message) {
+        setError(error.message);
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        setError(`Cannot connect to server. Please make sure the backend server is running on ${API_URL}`);
+      } else {
+        setError('Network error. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -98,9 +120,61 @@ const Register = ({ updateUser }) => {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                {error}
+                <p className="font-semibold">Registration Error:</p>
+                <p className="mt-1">{error}</p>
+                <p className="text-xs mt-3 text-red-600 font-medium">
+                  Please check:
+                </p>
+                <ul className="text-xs mt-1 text-red-600 list-disc list-inside space-y-1">
+                  <li>Backend server is running on {API_URL}</li>
+                  <li>Nickname is filled (at least 2 characters)</li>
+                  <li>Gender is selected (Male or Female)</li>
+                  <li>Username is unique and at least 3 characters</li>
+                  <li>Password is at least 6 characters</li>
+                </ul>
               </div>
             )}
+
+            <div>
+              <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Nick Name
+              </label>
+              <div className="mt-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUserCircle className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="nickname"
+                  name="nickname"
+                  type="text"
+                  required
+                  value={formData.nickname}
+                  onChange={handleChange}
+                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
+                  placeholder="Enter your nick name"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Gender
+              </label>
+              <div className="mt-1">
+                <select
+                  id="gender"
+                  name="gender"
+                  required
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+            </div>
 
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -119,27 +193,6 @@ const Register = ({ updateUser }) => {
                   onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
                   placeholder="Choose a username"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email Address
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaEnvelope className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
-                  placeholder="Enter your email"
                 />
               </div>
             </div>
@@ -176,37 +229,6 @@ const Register = ({ updateUser }) => {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Confirm Password
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaLock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
-                  placeholder="Confirm your password"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <FaEyeSlash className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <FaEye className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </div>
 
             <div>
               <button

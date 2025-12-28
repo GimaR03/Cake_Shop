@@ -9,7 +9,7 @@ const Footer = () => {
     phones: ["0761530112", "0768304426"],
     whatsapp: "0761530112",
     email: "shabeescakehub@gmail.com",
-    businessHours: "Open Daily: 8:00 AM - 8:00 PM",
+    businessHours: "24 Hours / 7 Days",
     facebook: "https://www.facebook.com/profile.php?id=100088583410943",
     instagram: "https://www.instagram.com/shabeescakehub?igsh=YzljYTk1ODg3Zg==",
     tiktok: "https://vm.tiktok.com/ZSFKD8NSq/"
@@ -82,14 +82,6 @@ const Footer = () => {
                   className="text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-2 flex items-center"
                 >
                   <span className="mr-2">→</span> Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/order"
-                  className="text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-2 flex items-center"
-                >
-                  <span className="mr-2">→</span> Online Order
                 </Link>
               </li>
               <li>
@@ -189,14 +181,14 @@ const Footer = () => {
               </h4>
               <div className="text-sm text-gray-300 space-y-1 bg-gradient-to-r from-pink-900/20 to-purple-900/20 rounded-lg p-3 backdrop-blur-sm border border-pink-500/20">
                 <div className="flex justify-between items-center">
-                  <span>Open Daily:</span>
+                  <span>Customer Service:</span>
                   <span className="bg-pink-600 text-white px-2 py-1 rounded text-xs font-medium shadow-md">
                     {contactInfo.businessHours}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Order Processing:</span>
-                  <span>Within Hours</span>
+                  <span>Available:</span>
+                  <span className="text-green-400 font-semibold">24/7 Support</span>
                 </div>
                 <div className="mt-2 p-2 bg-pink-900/30 rounded border border-pink-700/50">
                   <p className="text-pink-300 text-xs text-center italic">

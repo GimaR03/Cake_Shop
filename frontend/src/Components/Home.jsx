@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api';
 
 const Home = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [username, setUsername] = useState('');
+  const [nickname, setNickname] = useState('');
 
   useEffect(() => {
     if (
@@ -21,7 +22,7 @@ const Home = () => {
     if (userData) {
       try {
         const user = JSON.parse(userData);
-        setUsername(user.username);
+        setNickname(user.nickname || '');
       } catch (error) {
         console.error('Error parsing user data:', error);
       }
@@ -32,7 +33,7 @@ const Home = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/categories');
+      const response = await fetch(API_ENDPOINTS.CATEGORIES);
       const data = await response.json();
       if (data.success) {
         setCategories(data.categories);
@@ -81,10 +82,10 @@ const Home = () => {
       <div className="pt-20 pb-16 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-            {username ? (
+            {nickname ? (
               <>
                 <span className="block text-pink-600 dark:text-pink-400">
-                  Welcome {username}!
+                  Hi welcome {nickname}!
                 </span>
                 <span className="block text-3xl mt-4 text-gray-700 dark:text-gray-300">
                   to Shabee Cake Hub
@@ -101,14 +102,14 @@ const Home = () => {
           </h1>
 
           <p className="mt-3 max-w-2xl mx-auto text-base text-gray-500 dark:text-gray-300 sm:text-lg">
-            {username
+            {nickname
               ? 'Thank you for visiting! Explore our delicious handcrafted cakes made with love.'
               : 'Delicious, handcrafted cakes made with love and the finest ingredients.'}
           </p>
 
           <div className="mt-8 flex justify-center gap-4">
             <Link
-              to="/order"
+              to="/contact"
               className="px-6 py-3 text-white bg-pink-600 rounded-md hover:bg-pink-700"
             >
               Order Now
@@ -159,7 +160,7 @@ const Home = () => {
                   {/* View Category Button */}
                   <div className="mt-6">
                     <Link
-                      to={`/category/${category._id}`}
+                      to={`/category/${encodeURIComponent(category.name)}`}
                       className="w-full inline-block text-center px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700"
                     >
                       View Category

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { API_ENDPOINTS } from '../config/api';
 
 const Login = ({ updateUser }) => {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ const Login = ({ updateUser }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch(API_ENDPOINTS.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,8 +47,8 @@ const Login = ({ updateUser }) => {
           updateUser(data.user);
         }
         
-        // Redirect based on role
-        if (data.user.role === 'admin') {
+        // Redirect based on role or username
+        if (data.user.role === 'admin' || formData.username === 'ShabeeCakeHub') {
           navigate('/admin');
         } else {
           navigate('/');
