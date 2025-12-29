@@ -295,12 +295,13 @@ const Cart = () => {
                       {item.image && (
                         <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden">
                           <img
-                            src={`${API_URL}${item.image}`}
+                            src={getImageUrl(item.image)}
                             alt={item.name || "Product"}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.target.src = "https://via.placeholder.com/100x100?text=No+Image";
+                              handleImageError(e, 0);
                             }}
+                            loading="lazy"
                           />
                         </div>
                       )}
