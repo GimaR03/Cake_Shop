@@ -5,6 +5,44 @@ const fs = require('fs');
 const Product = require('../models/Product');
 const router = express.Router();
 
+// Dedicated route to serve product images with better error handling
+router.get('/image/:filename', (req, res) => {
+  try {
+    const { filename } = req.params;
+    
+    // Determine upload directory based on environment
+    const uploadDir = process.env.VERCEL 
+      ? '/tmp/uploads/products' 
+      : 'uploads/products';
+    
+    const imagePath = path.join(uploadDir, filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(imagePath)) {
+      console.error(`Image not found: ${imagePath}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Image not found'
+      });
+    }
+    
+    // Set proper headers
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
+    // Send file
+    res.sendFile(path.resolve(imagePath));
+  } catch (error) {
+    console.error('Error serving image:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error serving image',
+      error: error.message
+    });
+  }
+});
+
 // Configure multer for file uploads
 // Handle both local storage (Render) and serverless (Vercel)
 const storage = multer.diskStorage({
