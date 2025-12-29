@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -18,25 +19,39 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files (uploaded images)
 // Handle both local storage (Render) and serverless (Vercel)
-if (process.env.VERCEL) {
-  // For Vercel, try to serve from /tmp (temporary, files will be deleted)
-  app.use('/uploads', express.static('/tmp/uploads', {
-    setHeaders: (res, path) => {
-      // Add CORS headers for images
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    }
-  }));
-} else {
-  // For Render/traditional servers, use uploads folder
-  app.use('/uploads', express.static('uploads', {
-    setHeaders: (res, path) => {
-      // Add CORS headers for images
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    }
-  }));
-}
+const serveStaticFiles = () => {
+  if (process.env.VERCEL) {
+    // For Vercel, try to serve from /tmp (temporary, files will be deleted)
+    const tmpPath = '/tmp/uploads';
+    app.use('/uploads', express.static(tmpPath, {
+      setHeaders: (res, filePath) => {
+        // Add CORS headers for images
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        console.log(`Serving static file from Vercel: ${filePath}`);
+      },
+      fallthrough: false,
+      dotfiles: 'ignore'
+    }));
+    console.log(`✅ Static files configured for Vercel: ${tmpPath}`);
+  } else {
+    // For Render/traditional servers, use uploads folder
+    const uploadsPath = path.join(__dirname, 'uploads');
+    app.use('/uploads', express.static(uploadsPath, {
+      setHeaders: (res, filePath) => {
+        // Add CORS headers for images
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        console.log(`Serving static file: ${filePath}`);
+      },
+      fallthrough: false,
+      dotfiles: 'ignore'
+    }));
+    console.log(`✅ Static files configured for Render: ${uploadsPath}`);
+  }
+};
+
+serveStaticFiles();
 
 // Middleware to ensure MongoDB connection before API routes
 app.use('/api', async (req, res, next) => {
